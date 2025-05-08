@@ -1,0 +1,31 @@
+mport pandas as pd
+import tensorflow as tf
+from tensorflow.keras.layers import Embedding, Dense
+
+Load dataset
+ratings_df = pd.read_csv('ratings.csv')
+movies_df = pd.read_csv('movies.csv')
+
+Create user and movie embeddings
+user_embeddings = Embedding(input_dim=len(ratings_df['user_id'].unique()), output_dim=64)
+movie_embeddings = Embedding(input_dim=len(movies_df['movie_id'].unique()), output_dim=64)
+
+Define model architecture
+class MovieRecommender(tf.keras.Model):
+    def _init_(self):
+        super(MovieRecommender, self)._init_()
+        self.user_embedding = user_embeddings
+        self.movie_embedding = movie_embeddings
+        self.dense = Dense(64, activation='relu')
+
+    def call(self, user_id, movie_id):
+        user_emb = self.user_embedding(user_id)
+        movie_emb = self.movie_embedding(movie_id)
+        x = tf.concat([user_emb, movie_emb], axis=1)
+        x = self.dense(x)
+        return x
+
+Compile and train model
+model = MovieRecommender()
+model.compile(optimizer='adam', loss='mean_squared_error')
+model.fit(ratings_df['user_id']
